@@ -5,16 +5,27 @@ import axios from 'axios';
 export default function Chat() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
+  const [error, setError] = useState(null);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      setError('Please enter a message');
+      return;
+    }
 
     const newMsg = { role: 'user', content: input };
     setMessages([...messages, newMsg]);
     setInput('');
+    setError(null);
 
-    const res = await axios.post('http://localhost:3000/chat', { prompt: input });
-    setMessages(prev => [...prev, { role: 'model', content: res.data.response }]);
+    try {
+      const res = await axios.post('http://localhost:3000/chat', { prompt: input });
+      setMessages(prev => [...prev, { role: 'model', content: res.data.response }]);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Failed to get response from server';
+      setError(errorMsg.includes('503') ? 'Server is temporarily busy. Please try again later.' : errorMsg);
+      setMessages(prev => [...prev, { role: 'model', content: 'Error: Could not get response' }]);
+    }
   };
 
   return (
@@ -22,6 +33,9 @@ export default function Chat() {
       <header className="p-4 text-center font-bold text-2xl border-b border-gray-600">ChatBot</header>
 
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-600 max-w-xl">{error}</div>
+        )}
         {messages.map((msg, idx) => (
           <div
             key={idx}
