@@ -56,6 +56,11 @@ export class ChatController {
         `Failed to get response from Gemini API: ${error.response?.data?.message || error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+      console.error('Error from Gemini API:', error.response?.data || error.message);
+      throw new HttpException(
+        `Failed to get response from Gemini API: ${error.response?.data?.message || error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
